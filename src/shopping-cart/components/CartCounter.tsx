@@ -1,36 +1,54 @@
 "use client"
-import { useState } from "react"
+import { useAppSelector, useAppDispatch } from "@/store"
+import { decrement, increment, initCounterState, resetCount } from "@/store/counter/counterSlice"
+import { useEffect } from "react"
 
-export default function CartCounter() {
+interface Props {
+    value?: number
+}
 
-    const [counter, setCounter] = useState(0)
+interface CounterResponse {
+    method: string,
+    count: number
+}
 
-    const handleIncrement = (value: number = 1) => {
-        setCounter(counter + value)
-    }
+const getApiCounter = async (): Promise<CounterResponse> => {
+    const data = await fetch("/api/counter")
+    const json = await data.json()
+    return json
+}
 
-    const handleDecrement = (value: number = 1) => {
-        setCounter(counter - value)
-    }
+export default function CartCounter({ value = 0 }: Props) {
+
+    const count = useAppSelector(state => state.counter.count)
+    const dispatch = useAppDispatch()
+
+    useEffect(() => {
+        getApiCounter()
+            .then((res) => {
+                dispatch(initCounterState(res.count))
+            })
+    }, [dispatch])
+
 
     return (
         <>
             <span className="text-9xl">
-                {counter} 
+                {count}
             </span>
 
             <div
                 className="flex"
             >
                 <button
-                    onClick={() => handleIncrement()}
+                    onClick={() => dispatch(increment())}
                     className="flex items-center justify-center p-2 rounded-xl bg-gray-900 text-white hover:bg-gray-600 transition-all w-[100px] mr-2"
                 >
                     +1
                 </button>
 
                 <button
-                    onClick={() => handleDecrement()}
+                    onClick={() => dispatch(decrement())}
                     className="flex items-center justify-center p-2 rounded-xl bg-gray-900 text-white hover:bg-gray-600 transition-all w-[100px]"
                 >
                     -1
